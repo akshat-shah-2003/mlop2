@@ -5,6 +5,8 @@ import pandas as pd
 import pickle
 import json
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from dvclive import Live
+import yaml
 
 log_dir = 'logs'
 os.makedirs(log_dir, exist_ok=True)
@@ -25,6 +27,17 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def load_params(params_path='params.yaml'):
+    """Load parameters from a YAML file."""
+    try:
+        with open(params_path, 'r') as f:
+            params = yaml.safe_load(f)
+        logger.info(f"Parameters loaded successfully from {params_path}")
+        return params
+    except Exception as e:
+        logger.error(f"Error loading parameters from {params_path}: {e}")
+        raise
 
 def load_data(file_path):
     """Load data from a CSV file."""
@@ -87,6 +100,7 @@ def save_metrics(metrics, file_path):
 
 def main():
     try:
+        params = load_params(params_path='params.yaml')
         model_path = './models/rf_model.pkl'
         test_data_path = './data/processed/test_tfidf.csv'
         metrics_output_path = './reports/metrics.json'
@@ -98,7 +112,13 @@ def main():
         y_test = test_data.iloc[:,-1].values
 
         metrics = evaluate_model(model, X_test, y_test)
+
+        with Live(save_dvc_exp=True) as live:
+            for i,j in metrics.items():
+                live.log_metric(i, j)
+            live.log_params(params)
         save_metrics(metrics, metrics_output_path)
+        
     except Exception as e:
         logger.error(f"Error in model evaluation: {e}")
         raise
