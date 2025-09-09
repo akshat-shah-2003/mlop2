@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
 import logging
+import yaml
 
 log_dir = 'logs'
 os.makedirs(log_dir, exist_ok=True)
@@ -22,6 +23,17 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def load_params(params_path='params.yaml'):
+    """Load parameters from a YAML file."""
+    try:
+        with open(params_path, 'r') as f:
+            params = yaml.safe_load(f)
+        logger.info(f"Parameters loaded successfully from {params_path}")
+        return params
+    except Exception as e:
+        logger.error(f"Error loading parameters from {params_path}: {e}")
+        raise
 
 def load_data(file_path):
     """Load data from a CSV file."""
@@ -58,12 +70,12 @@ def save_data(train_data,test_data,file_path):
 
 def main():
     try:
-        ts = 0.21
-        rs = 42
+        params = load_params(params_path='params.yaml')
+        ts = params['data_ingestion']['test_size']
         data_path = 'https://raw.githubusercontent.com/vikashishere/YT-MLOPS-Complete-ML-Pipeline/refs/heads/main/experiments/spam.csv'
         df = load_data(data_path)
         processed_df = preprocess_data(df)
-        train_data, test_data = train_test_split(processed_df, test_size=ts, random_state=rs)
+        train_data, test_data = train_test_split(processed_df, test_size=ts)
         logger.info(f"Train-test split completed: {len(train_data)} train, {len(test_data)} test samples.")
         save_data(train_data, test_data, './data')
     except Exception as e:
