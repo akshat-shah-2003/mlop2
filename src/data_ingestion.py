@@ -58,7 +58,7 @@ def save_data(train_data,test_data,file_path):
 
 def main():
     try:
-        ts = 0.2
+        ts = 0.21
         rs = 42
         data_path = 'https://raw.githubusercontent.com/vikashishere/YT-MLOPS-Complete-ML-Pipeline/refs/heads/main/experiments/spam.csv'
         df = load_data(data_path)
